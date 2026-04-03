@@ -1,0 +1,36 @@
+schema_version: 1
+version: 1
+# Modelo local acordado: Qwen2.5-Coder 3B (Ollama: ollama pull qwen2.5-coder:3b)
+llm:
+  enabled: false
+  model: qwen2.5-coder:3b
+  base_url: http://127.0.0.1:11434/v1
+# prompts[]: mismo criterio que `zscan init` (globs con al menos un fichero hoy)
+prompts:
+  - paths:
+      - docs/**/*.md
+    purpose: Documentación del proyecto (Markdown bajo docs/)
+  - paths:
+      - README.md
+    purpose: README principal del repositorio
+  - paths:
+      - contrib/**/*.md
+    purpose: Documentación bajo contrib/
+  - paths:
+      - src/**/*.{ts,tsx,js,jsx,mjs,cjs,py,rb,go,java,kt}
+    purpose: Código fuente bajo src/ (TypeScript/JavaScript, Python, Ruby, Go, Java, Kotlin, …) con literales que podrían ser prompts para IA
+reliability:
+  prompts_min_percent: 85
+  dependencies:
+    default_min_percent: 70
+    structural_critical:
+      auto_threshold_percent: 80
+      explicit_core:
+        - typescript
+        - commander
+        - yaml
+    packages: {}
+rules:
+  - id: no_instruction_override
+    description: "Detectar anulación explícita de instrucciones (regex YAML)"
+    pattern: "ignore\\s+(all\\s+)?(previous|prior)\\s+instructions?"

@@ -15,6 +15,7 @@ CLI y librería **local** para auditar dependencias contra [OSV](https://osv.dev
 - [Instalación desde GitHub](#instalación-desde-github)
 - [GitHub Pages (sitio estático)](#github-pages-sitio-estático)
 - [Uso rápido](#uso-rápido)
+- [Referencia de configuración](#referencia-de-configuración)
 - [Ecosistemas soportados](#ecosistemas-soportados)
 - [LLM (config, probe, prompt-scan)](#llm-config-probe-prompt-scan)
 - [Servidor HTTP, offline](#servidor-http-offline)
@@ -151,16 +152,97 @@ node dist/cli.js scan --root . --no-enrich-docs --markdown reporte.md
 
 ## Variables de entorno
 
-Plantilla comentada: **[`.env.example`](.env.example)** (todas las `ZSCAN_*` que usa el proyecto).
+Plantilla comentada línea a línea: **[`.env.example`](.env.example)**. Para comandos que usan LLM, la CLI carga **`ZSCAN_*`** desde **`.env.local`** en la raíz del proyecto escaneado (no un `.env` genérico automático). En bash puedes hacer `set -a && source .env && set +a` si prefieres exportar desde otro fichero.
 
-La CLI **no** lee un fichero `.env` genérico por defecto; para LLM sí se cargan claves `ZSCAN_*` desde **`.env.local`** en la raíz del proyecto escaneado (`loadEnvLocalFile`). Puedes exportar manualmente desde `.env` en tu shell si lo prefieres.
+---
 
-## Config `zscan.yaml`
+## Referencia de configuración
 
-- Archivo por defecto en la raíz del proyecto; otro nombre con **`ZSCAN_CONFIG`**.
-- **`schema_version: 1`** identifica el esquema.
+Aquí tienes **YAML**, **variables de entorno**, **CLI**, el atajo **`./zscan`**, **VS Code / Cursor** y **pre-commit** en un solo sitio.
 
-**pre-commit / VS Code:** `contrib/pre-commit`, `contrib/vscode`.
+### `zscan.yaml`
+
+| Tema | Detalle |
+|------|---------|
+| Ubicación | Raíz del proyecto; otro nombre con env **`ZSCAN_CONFIG`**. |
+| Esquema | **`schema_version: 1`** (ver avisos si usas una versión mayor). |
+| Contenido típico | `llm`, `prompts[]` (globs + `purpose`), `reliability`, `rules[]`. |
+| Ejemplo en este repo | [zscan.yaml](zscan.yaml) |
+
+Tras clonar un proyecto vacío: `node dist/cli.js init --root .` (o `./zscan init`). **`init`** detecta Markdown, agentes y código con posibles prompts; ver [Uso rápido](#uso-rápido).
+
+### Variables `ZSCAN_*` (resumen)
+
+| Variable | Rol |
+|----------|-----|
+| `ZSCAN_CONFIG` | Nombre del fichero YAML (por defecto `zscan.yaml`). |
+| `ZSCAN_ROOT` | Raíz a escanear con el script [`./zscan`](zscan) si no usas `--root`. |
+| `ZSCAN_OFFLINE` | `1` → OSV solo desde caché (equivale a `scan --offline`). |
+| `ZSCAN_OSV_CACHE_DIR` | Caché OSV (por defecto `~/.cache/zscan/osv`). |
+| `ZSCAN_ENRICH_CACHE_DIR` | Caché del scraping de referencias CVE. |
+| `ZSCAN_LLM_BASE_URL` | URL base API compatible OpenAI (p. ej. Ollama `http://127.0.0.1:11434/v1`). |
+| `ZSCAN_LLM_MODEL` | Identificador del modelo. |
+| `ZSCAN_LLM_API_KEY` | Clave (OpenAI, Gemini, Anthropic, …). |
+| `ZSCAN_LLM_PROVIDER` | `openai_compatible`, `anthropic`, etc. |
+| `ZSCAN_INTEGRATION_OLLAMA` | `1` → activa tests de integración contra Ollama. |
+| `ZSCAN_OLLAMA_TEST_MODEL` | Modelo para esos tests. |
+| `ZSCAN_OLLAMA_NO_INSTALL` | `1` → [`scripts/ensure-ollama.sh`](scripts/ensure-ollama.sh) no instala Ollama (solo comprueba / levanta). |
+
+Detalle y comentarios: **[`.env.example`](.env.example)**.
+
+### Comandos CLI
+
+Ayuda global y por subcomando:
+
+```bash
+node dist/cli.js --help
+node dist/cli.js scan --help
+node dist/cli.js prompt-scan --help
+```
+
+| Comando | Alias | Descripción |
+|---------|--------|-------------|
+| `init` | — | Crea [`zscan.yaml`](zscan.yaml); `--force` sobrescribe. |
+| `config` | — | Asistente interactivo LLM (OpenAI, Ollama, Gemini, Claude) y `.env.local`. |
+| `llm-probe` | `llm-ping` | Ping al modelo según YAML + `.env.local`. |
+| `prompt-scan` | `prompts` | Solo evaluación de `prompts[]` / reglas; `--no-llm` sin modelo. |
+| `scan` | — | Informe único: dependencias, OSV, scraping opcional, prompt-scan integrado. |
+| `serve` | — | HTTP local: `GET /health`, `POST /scan` (JSON). |
+
+Desarrollo sin compilar: **`npm run dev -- <cmd>`** (ej. `npm run dev -- scan --root . --help`) usando [`tsx`](https://github.com/privatenumber/tsx).
+
+### Atajo `./zscan` (este repositorio)
+
+Script [`zscan`](zscan): instala dependencias y compila si hace falta; usa **`ZSCAN_ROOT`** o la raíz Git del cwd.
+
+| Invocación | Equivale a |
+|------------|------------|
+| `./zscan scan` | `scan --root <raíz>` |
+| `./zscan probe` | `llm-probe` |
+| `./zscan init` | `init` |
+| `./zscan config` | `config` |
+| `./zscan prompt-scan` | `prompt-scan` |
+| `./zscan ollama` | [`scripts/ensure-ollama.sh`](scripts/ensure-ollama.sh) |
+| `./zscan serve` | `serve` |
+| `./zscan <cmd>` | Cualquier subcomando del CLI |
+
+Ayuda: `./zscan help`. Documentación del intérprete: [GNU Bash](https://www.gnu.org/software/bash/manual/).
+
+### VS Code y Cursor (tareas recomendadas)
+
+1. Lee la guía del repo: **[contrib/vscode/README.md](contrib/vscode/README.md)**.
+2. Copia **[contrib/vscode/tasks.json](contrib/vscode/tasks.json)** a **`.vscode/tasks.json`** del workspace (o fusiona las entradas `zscan:*`).
+3. En la paleta: **Tasks: Run Task** → p. ej. **`zscan: scan (this folder)`** (genera `zscan-report.md` en la raíz del workspace) o **`zscan: serve HTTP`**.
+
+Referencias oficiales:
+
+- [Tasks en Visual Studio Code](https://code.visualstudio.com/docs/editor/tasks)
+- [Variables en tareas](https://code.visualstudio.com/docs/editor/variables-reference) (`${workspaceFolder}`, etc.)
+- [Cursor](https://cursor.com/) — compatible con el mismo formato de tareas que VS Code
+
+### pre-commit (en el repo *de tu aplicación*)
+
+Ejemplo listo para copiar: **[contrib/pre-commit/sample.pre-commit-config.yaml](contrib/pre-commit/sample.pre-commit-config.yaml)**. Ajusta `entry` a `zscan`, `npx zscan` o ruta a `dist/cli.js`. Instalación del framework: [pre-commit.com](https://pre-commit.com/).
 
 ---
 
@@ -232,4 +314,3 @@ El flujo recomendado para usuarios y para la documentación pública sigue siend
 ## Licencia
 
 MIT
-# zscan

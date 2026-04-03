@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>zscan — seguridad local: dependencias OSV, CVE y prompts</title>
+    <meta
+      name="description"
+      content="CLI y librería Node: un solo scan con OSV multi-ecosistema, scraping de referencias CVE, prompt-scan (Markdown y strings en código) y LLM opcional. init descubre globs. Sin modificar tu repo."
+    />
+    <meta name="theme-color" content="#0c0f14" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0d12;
+        --surface: #121822;
+        --surface2: #1a2230;
+        --text: #eef2f8;
+        --muted: #8b97ab;
+        --accent: #3ee4c6;
+        --accent-hover: #5ff0d5;
+        --border: #2a3548;
+        --warn: #f0c674;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "DM Sans", system-ui, sans-serif;
+        background: var(--bg);
+        background-image: radial-gradient(
+            ellipse 100% 80% at 0% -20%,
+            rgba(62, 228, 198, 0.12),
+            transparent 50%
+          ),
+          radial-gradient(ellipse 80% 50% at 100% 0%, rgba(42, 90, 120, 0.2), transparent 45%);
+        color: var(--text);
+        line-height: 1.65;
+        font-size: 1.05rem;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        color: var(--accent-hover);
+        text-decoration: underline;
+      }
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        padding: 0.85rem 1.5rem;
+        background: rgba(10, 13, 18, 0.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav__brand {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 600;
+        font-size: 1.1rem;
+        letter-spacing: -0.02em;
+        color: var(--text);
+      }
+      .nav__brand span {
+        color: var(--accent);
+      }
+      .nav__links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem 1.25rem;
+        font-size: 0.92rem;
+      }
+      .nav__links a {
+        color: var(--muted);
+      }
+      .nav__links a:hover {
+        color: var(--accent);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        padding: 0.65rem 1.2rem;
+        font-family: inherit;
+        font-size: 0.95rem;
+        font-weight: 600;
+        border-radius: 10px;
+        border: 1px solid var(--accent-dim, #2a9d82);
+        background: rgba(62, 228, 198, 0.12);
+        color: var(--accent);
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .btn:hover {
+        background: rgba(62, 228, 198, 0.22);
+        text-decoration: none;
+        color: var(--accent-hover);
+      }
+      .btn--ghost {
+        background: transparent;
+        border-color: var(--border);
+        color: var(--muted);
+      }
+      .btn--ghost:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 1.5rem 4rem;
+      }
+      .hero {
+        padding: 3rem 0 3.5rem;
+      }
+      .badge {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--accent);
+        border: 1px solid rgba(62, 228, 198, 0.35);
+        padding: 0.3rem 0.75rem;
+        border-radius: 999px;
+        margin-bottom: 1.25rem;
+      }
+      h1 {
+        font-size: clamp(2.1rem, 5.5vw, 3rem);
+        font-weight: 700;
+        line-height: 1.12;
+        margin: 0 0 1rem;
+        letter-spacing: -0.03em;
+      }
+      .lead {
+        font-size: 1.2rem;
+        color: var(--muted);
+        max-width: 38rem;
+        margin: 0 0 2rem;
+      }
+      .hero__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-bottom: 2.5rem;
+      }
+      section {
+        margin-bottom: 3.5rem;
+      }
+      h2 {
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 0 0 1.25rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1.25rem 1.35rem;
+      }
+      .card h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+      .card p {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+      pre,
+      code {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+      }
+      pre {
+        font-size: 0.82rem;
+        line-height: 1.5;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.1rem 1.2rem;
+        overflow-x: auto;
+        margin: 0 0 1rem;
+      }
+      pre:last-child {
+        margin-bottom: 0;
+      }
+      .note {
+        font-size: 0.9rem;
+        color: var(--muted);
+        border-left: 3px solid var(--warn);
+        padding: 0.5rem 0 0.5rem 1rem;
+        margin: 1rem 0 0;
+        background: rgba(240, 198, 116, 0.06);
+        border-radius: 0 8px 8px 0;
+      }
+      footer {
+        margin-top: 4rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+      footer p {
+        margin: 0.4rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="nav">
+      <a class="nav__brand" href="./">zscan<span>.</span></a>
+      <nav class="nav__links" aria-label="Secciones">
+        <a href="#caracteristicas">Características</a>
+        <a href="#instalar">Instalar</a>
+        <a href="#comandos">Comandos</a>
+        <a href="#enriquecimiento">Referencias CVE</a>
+        <a href="#referencia">Config y DX</a>
+        <a href="#paginas">GitHub Pages</a>
+        <a href="./vision-agente-seguridad.md">Visión</a>
+      </nav>
+    </header>
+
+    <main class="wrap">
+      <section class="hero">
+        <span class="badge">Open source · MIT</span>
+        <h1>Dependencias bajo control, en tu máquina</h1>
+        <p class="lead">
+          <strong>zscan</strong> consulta
+          <a href="https://osv.dev/">OSV</a> sobre <strong>npm</strong>, <strong>PyPI</strong>,
+          <strong>Go</strong>, <strong>RubyGems</strong> y <strong>Maven</strong>. Un solo
+          <code>scan</code> genera un <strong>informe unificado</strong> Markdown/JSON: dependencias,
+          árbol, pistas de imports, <strong>scraping por defecto</strong> de URLs de advisories (extractos
+          en caché; usa <code>--no-enrich-docs</code> para ir más rápido) y
+          <strong>prompt-scan</strong> según <code>zscan.yaml</code> — Markdown, agentes tipo
+          AGENTS.md y <strong>código fuente</strong> donde haya literales tipo prompt (TS, Python, Go,
+          …). <code>zscan init</code> <strong>descubre</strong> globs al crear el YAML. LLM opcional
+          (<code>config</code>, <code>llm-probe</code>). <strong>No modifica tu repositorio.</strong>
+        </p>
+        <div class="hero__actions">
+          <!-- Sustituye la URL por la de tu fork si aplica -->
+          <a
+            class="btn"
+            href="https://github.com/angieshadai/zscan"
+            rel="noopener noreferrer"
+            >Ver en GitHub</a
+          >
+          <a class="btn btn--ghost" href="#instalar">Cómo instalarlo</a>
+        </div>
+      </section>
+
+      <section id="caracteristicas">
+        <h2>Características</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Multi-ecosistema + OSV</h3>
+            <p>
+              Un solo comando puede mezclar lockfiles presentes en la raíz del proyecto y
+              consultar vulnerabilidades conocidas.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Árbol y propagación</h3>
+            <p>
+              Árbol resuelto para npm; vista plana para otros ecosistemas (MVP). Notas de impacto
+              en cadena en el informe.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Imports y submódulos</h3>
+            <p>
+              Pistas best-effort por lenguaje; opción para ignorar rutas bajo submódulos Git al
+              mapear imports.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Informe único <code>scan</code></h3>
+            <p>
+              Un comando mezcla lockfiles presentes, OSV, enriquecimiento de referencias (por
+              defecto) y evaluación de <code>prompts[]</code>. <code>scan --no-prompt-llm</code> evita
+              llamar al modelo en ese bloque.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Prompts e <code>init</code></h3>
+            <p>
+              <code>zscan init</code> propone globs según lo que exista: docs, prompts,
+              <code>.cursor</code>, AGENTS.md, README, código TS/JS/Python/Ruby/Go/Java/Kotlin con
+              literales largos tipo LLM. Reglas YAML + heurísticas + LLM si
+              <code>llm.enabled</code>.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Offline OSV</h3>
+            <p>
+              Caché local de consultas OSV para entornos sin red (<code>scan --offline</code> o
+              <code>ZSCAN_OFFLINE=1</code>).
+            </p>
+          </div>
+          <div class="card">
+            <h3>Referencias CVE en el informe</h3>
+            <p>
+              Por defecto se descargan URLs de <code>references</code>, HTML → texto y extractos en
+              Markdown/JSON (<code>meta.docSnippets</code>, caché ~7 días). Omite con
+              <code>--no-enrich-docs</code>. La flag <code>--enrich-docs</code> quedó obsoleta (compat).
+            </p>
+          </div>
+          <div class="card">
+            <h3>Servidor HTTP + Ollama</h3>
+            <p>
+              <code>zscan serve</code> expone <code>POST /scan</code> con el mismo núcleo. En
+              desarrollo: <code>npm run ollama:ensure</code> y tests de integración locales con
+              <code>ZSCAN_INTEGRATION_OLLAMA=1</code>.
+            </p>
+          </div>
+          <div class="card">
+            <h3>VS Code, pre-commit</h3>
+            <p>
+              Tareas de ejemplo en <code>contrib/vscode/</code>; hook de muestra en
+              <code>contrib/pre-commit/</code>. Plantilla de variables: <code>.env.example</code>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="instalar">
+        <h2>Instalación desde el código</h2>
+        <p style="color: var(--muted); margin-top: 0">
+          Requiere <strong>Node.js 18+</strong>. Clona el repositorio y compila en local (no hace
+          falta publicar en npm para usar la herramienta).
+        </p>
+        <pre><code>git clone https://github.com/angieshadai/zscan.git
+cd zscan
+npm install
+npm run build</code></pre>
+        <p style="color: var(--muted)">
+          Opcional: en la raíz del repo, <code>chmod +x zscan</code> y usa
+          <code>./zscan scan</code> (el script instala y compila si hace falta).
+        </p>
+      </section>
+
+      <section id="comandos">
+        <h2>Comandos rápidos</h2>
+        <pre><code>node dist/cli.js init --root .
+node dist/cli.js scan --root . --markdown reporte.md
+node dist/cli.js scan --root . --no-enrich-docs --markdown reporte.md   # sin scraping CVE
+node dist/cli.js scan --root . --no-prompt-llm --markdown reporte.md   # prompts sin LLM
+node dist/cli.js config --root .
+node dist/cli.js llm-probe --root .
+node dist/cli.js prompt-scan --root .
+node dist/cli.js serve --port 8787
+
+# Atajo en el repo clonado (instala/compila si hace falta):
+./zscan scan --markdown reporte.md
+
+# Desarrollo del propio zscan
+npm test
+npm run test:integration:ollama</code></pre>
+        <p style="color: var(--muted); margin: 0">
+          Referencia completa (variables <code>ZSCAN_*</code>, CLI, VS Code, pre-commit):
+          <a href="https://github.com/angieshadai/zscan/blob/main/README.md#referencia-de-configuración"
+            >README → Referencia de configuración</a
+          >.
+        </p>
+      </section>
+
+      <section id="enriquecimiento">
+        <h2>Referencias CVE: scraping en el informe</h2>
+        <p style="color: var(--muted); margin-top: 0">
+          OSV aporta metadatos y enlaces; el texto de la página del advisory aporta contexto para
+          remediación. En <strong>cada <code>scan</code></strong> (salvo que uses
+          <code>--no-enrich-docs</code>) zscan <strong>descarga esas URLs</strong>, reduce HTML a texto
+          y añade <strong>extractos</strong> al Markdown y al JSON (<code>meta.docSnippets</code>),
+          con <strong>caché en disco</strong> (TTL ~7 días). No sustituye a OSV: complementa el informe.
+        </p>
+        <pre><code># Comportamiento por defecto (con scraping):
+node dist/cli.js scan --root . --markdown reporte.md
+
+# Sin red a esas URLs / más rápido:
+node dist/cli.js scan --root . --no-enrich-docs --markdown reporte.md</code></pre>
+        <p class="note" style="margin-top: 1rem">
+          Variable <code>ZSCAN_ENRICH_CACHE_DIR</code>. API <code>POST /scan</code>: omite scraping
+          con <code>"enrichDocs": false</code>. Roadmap en
+          <a href="./vision-agente-seguridad.md">vision-agente-seguridad.md</a> (§3).
+        </p>
+      </section>
+
+      <section id="referencia">
+        <h2>Configuración y flujo de trabajo</h2>
+        <p style="color: var(--muted); margin-top: 0">
+          El <strong>README</strong> del repositorio concentra la referencia: <code>zscan.yaml</code>,
+          todas las variables <code>ZSCAN_*</code> (plantilla
+          <a href="https://github.com/angieshadai/zscan/blob/main/.env.example">.env.example</a>),
+          tabla de subcomandos CLI, atajo <code>./zscan</code>, tareas
+          <a href="https://github.com/angieshadai/zscan/tree/main/contrib/vscode">VS Code / Cursor</a>
+          y
+          <a href="https://github.com/angieshadai/zscan/tree/main/contrib/pre-commit">pre-commit</a>.
+          Script opcional
+          <a href="https://github.com/angieshadai/zscan/blob/main/scripts/ensure-ollama.sh"
+            ><code>scripts/ensure-ollama.sh</code></a
+          >
+          (instalar / levantar Ollama en macOS/Linux).
+        </p>
+        <ul style="color: var(--muted); padding-left: 1.25rem; margin: 0">
+          <li>
+            <a href="https://github.com/angieshadai/zscan/blob/main/README.md">README.md (GitHub)</a>
+          </li>
+          <li>
+            <a href="https://github.com/angieshadai/zscan/blob/main/zscan.yaml">zscan.yaml de ejemplo</a>
+          </li>
+          <li>
+            <a href="https://ollama.com/">Ollama</a> ·
+            <a href="https://pre-commit.com/">pre-commit</a> ·
+            <a href="https://code.visualstudio.com/docs/editor/tasks">Tareas VS Code</a>
+          </li>
+        </ul>
+      </section>
+
+      <section id="paginas">
+        <h2>Esta web con GitHub Pages</h2>
+        <p style="color: var(--muted); margin-top: 0">
+          Este sitio es HTML estático en la carpeta <code>docs/</code>. Para publicarlo sin
+          acciones ni npm:
+        </p>
+        <ol style="color: var(--muted); padding-left: 1.25rem">
+          <li>Repositorio en GitHub → <strong>Settings</strong> → <strong>Pages</strong>.</li>
+          <li>
+            <strong>Build and deployment</strong>: origen
+            <strong>Deploy from a branch</strong>.
+          </li>
+          <li>Rama <code>main</code> (o la predeterminada) y carpeta <strong>/docs</strong>.</li>
+          <li>Guardar. La URL será <code>https://&lt;usuario&gt;.github.io/&lt;repo&gt;/</code>.</li>
+        </ol>
+        <p class="note">
+          El archivo <code>docs/.nojekyll</code> evita que GitHub procese el sitio con Jekyll y
+          garantiza que los archivos se sirvan tal cual.
+        </p>
+      </section>
+
+      <footer>
+        <p>
+          <strong>zscan</strong> — MIT ·
+          <a href="https://github.com/angieshadai/zscan/blob/main/README.md">README</a> · Visión:
+          <a href="./vision-agente-seguridad.md">vision-agente-seguridad.md</a>
+        </p>
+        <p>
+          Si el repo o GitHub Pages son otros, edita enlaces en <code>docs/index.html</code> (busca
+          <code>angieshadai/zscan</code>).
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>

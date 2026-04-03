@@ -1,0 +1,66 @@
+{
+  "name": "zscan",
+  "version": "0.1.0",
+  "description": "Local security scanner for JS/Python repos: dependency vulns (OSV), reports for AI-assisted fixes",
+  "homepage": "https://angieshadai.github.io/zscan/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angieshadai/zscan.git"
+  },
+  "bugs": {
+    "url": "https://github.com/angieshadai/zscan/issues"
+  },
+  "type": "module",
+  "bin": {
+    "zscan": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    ".env.example"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "scan:self": "npm run build && node dist/cli.js scan --root .",
+    "scan:self:save": "npm run build && node dist/cli.js scan --root . --markdown zscan-self-report.md --json zscan-self-report.json --no-print",
+    "scan:example": "npm run build && node dist/cli.js scan --root examples/test-app",
+    "scan:test-py": "npm run build && node dist/cli.js scan --root examples/test-py",
+    "scan:test-yarn": "npm run build && node dist/cli.js scan --root examples/test-yarn",
+    "scan:test-pnpm": "npm run build && node dist/cli.js scan --root examples/test-pnpm",
+    "llm-probe": "npm run build && node dist/cli.js llm-probe --root .",
+    "zscan": "bash ./zscan",
+    "serve": "npm run build && node dist/cli.js serve",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "ollama:ensure": "bash scripts/ensure-ollama.sh",
+    "test:integration:ollama": "npm run ollama:ensure && ZSCAN_INTEGRATION_OLLAMA=1 npm run test:integration"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "security",
+    "dependencies",
+    "osv",
+    "supply-chain",
+    "scanner",
+    "cli"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.5"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "fast-glob": "^3.3.3",
+    "yaml": "^2.6.1"
+  }
+}

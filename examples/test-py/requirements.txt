@@ -1,0 +1,2 @@
+# Pin antiguo para demostrar hallazgos OSV (solo ejemplo local).
+urllib3==1.25.8

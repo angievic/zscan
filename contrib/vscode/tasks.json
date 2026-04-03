@@ -1,0 +1,28 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "zscan: build",
+      "type": "npm",
+      "script": "build",
+      "group": "build",
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "zscan: scan (this folder)",
+      "type": "shell",
+      "command": "node dist/cli.js scan --root ${workspaceFolder} --markdown ${workspaceFolder}/zscan-report.md",
+      "dependsOn": ["zscan: build"],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "zscan: serve HTTP",
+      "type": "shell",
+      "command": "node dist/cli.js serve --port 8787",
+      "dependsOn": ["zscan: build"],
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

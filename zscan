@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# Atajo local: instala/compila si hace falta y ejecuta el CLI de zscan.
+# Uso: ./zscan probe | scan | init | …
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
+if [[ ! -d node_modules ]]; then
+  echo "zscan → instalando dependencias (npm install)…"
+  npm install
+fi
+
+if [[ ! -f dist/cli.js ]]; then
+  echo "zscan → compilando TypeScript…"
+  npm run build --silent
+fi
+
+# Raíz del proyecto a escanear: variable > git > directorio actual
+ROOT="${ZSCAN_ROOT:-}"
+if [[ -z "$ROOT" ]]; then
+  ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+fi
+ROOT="$(cd "$ROOT" && pwd)"
+
+cmd="${1:-help}"
+[[ $# -gt 0 ]] && shift || true
+
+case "$cmd" in
+  config)
+    echo "zscan → asistente LLM (OpenAI u Ollama); raíz: $ROOT"
+    exec node dist/cli.js config --root "$ROOT" "$@"
+    ;;
+  probe | ping | check)
+    echo "zscan → probando LLM (lee zscan.yaml + .env.local)…"
+    echo "    raíz config: $ROOT"
+    exec node dist/cli.js llm-probe --root "$ROOT" "$@"
+    ;;
+  scan)
+    exec node dist/cli.js scan --root "$ROOT" "$@"
+    ;;
+  prompt-scan|prompts)
+    exec node dist/cli.js prompt-scan --root "$ROOT" "$@"
+    ;;
+  ollama)
+    exec bash "$SCRIPT_DIR/scripts/ensure-ollama.sh" "$@"
+    ;;
+  serve)
+    exec node dist/cli.js serve "$@"
+    ;;
+  init)
+    exec node dist/cli.js init --root "$ROOT" "$@"
+    ;;
+  help | -h | --help | "")
+    cat <<EOF
+zscan — atajo local
+
+  ./zscan config    Asistente: OpenAI, Ollama, Gemini o Claude (+ ping)
+  ./zscan probe     Ping al LLM configurado (Ollama, OpenAI, …)
+  ./zscan scan      Escanea dependencias (mismo criterio de raíz que abajo)
+  ./zscan prompt-scan  Evalúa prompts (YAML + heurísticas); alias: prompts
+  ./zscan ollama    Instala Ollama si falta (brew/Linux) y arranca serve si :11434 cae; --no-install solo serve
+  ./zscan serve     Servidor HTTP local (127.0.0.1:8787 por defecto)
+  ./zscan init      Crea o actualiza zscan.yaml (usa --force si aplica)
+  ./zscan <cmd>     Cualquier comando del CLI: ./zscan scan --markdown r.md
+
+Raíz del proyecto:
+  Por defecto: raíz del repo git si estás dentro de uno, si no el cwd.
+  Forzar:       ZSCAN_ROOT=/ruta/al/proyecto ./zscan scan
+
+Ejemplos:
+  ./zscan probe
+  ./zscan scan --markdown reporte.md --no-print
+  ZSCAN_ROOT=~/mi-app ./zscan scan
+EOF
+    ;;
+  *)
+    exec node dist/cli.js "$cmd" "$@"
+    ;;
+esac

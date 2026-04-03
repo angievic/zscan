@@ -1,0 +1,8 @@
+{
+  "name": "zscan-test-yarn",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "minimist": "1.2.5"
+  }
+}

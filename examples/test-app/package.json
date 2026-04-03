@@ -1,0 +1,9 @@
+{
+  "name": "zscan-test-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Proyecto mínimo para probar zscan (dependencia con CVE conocido en OSV)",
+  "dependencies": {
+    "minimist": "1.2.5"
+  }
+}

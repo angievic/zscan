@@ -1,0 +1,16 @@
+lockfileVersion: '6.0'
+
+settings:
+  autoInstallPeers: true
+
+importers:
+  .:
+    dependencies:
+      minimist:
+        specifier: 1.2.5
+        version: 1.2.5
+
+packages:
+  /minimist/1.2.5:
+    resolution: {integrity: sha512-FM9qNUhYpPld7RZtjVhUA3BJ6CflWX1ldK4eH+s8LrNv1Jl7IRf9WDdYKNlT5T8jwr9JW7JzdaNTWbFpBzJ4yA==}
+    engines: {node: '>=10'}
