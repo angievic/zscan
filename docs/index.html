@@ -8,24 +8,27 @@
       name="description"
       content="CLI y librería Node: un solo scan con OSV multi-ecosistema, scraping de referencias CVE, prompt-scan (Markdown y strings en código) y LLM opcional. init descubre globs. Sin modificar tu repo."
     />
-    <meta name="theme-color" content="#0c0f14" />
+    <meta name="theme-color" content="#f7f5f2" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <style>
+      /* Colores alineados a zbills.online (--background, --foreground, --color-accent, --brand-primary, #20BD5A, etc.) */
       :root {
-        --bg: #0a0d12;
-        --surface: #121822;
-        --surface2: #1a2230;
-        --text: #eef2f8;
-        --muted: #8b97ab;
-        --accent: #3ee4c6;
-        --accent-hover: #5ff0d5;
-        --border: #2a3548;
-        --warn: #f0c674;
+        --bg: #f7f5f2;
+        --surface: #ffffff;
+        --surface2: #efede8;
+        --text: #0a0a0a;
+        --muted: #6e6256;
+        --accent: #20bd5a;
+        --accent-hover: #18994a;
+        --ink: #0a0a0a;
+        --ink-hover: #262626;
+        --border: #d9d0c5;
+        --warn: #f59e0b;
       }
       *,
       *::before,
@@ -38,20 +41,20 @@
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: "DM Sans", system-ui, sans-serif;
+        font-family: Inter, system-ui, sans-serif;
         background: var(--bg);
         background-image: radial-gradient(
-            ellipse 100% 80% at 0% -20%,
-            rgba(62, 228, 198, 0.12),
-            transparent 50%
+            ellipse 90% 70% at 0% 0%,
+            rgba(32, 189, 90, 0.07),
+            transparent 55%
           ),
-          radial-gradient(ellipse 80% 50% at 100% 0%, rgba(42, 90, 120, 0.2), transparent 45%);
+          radial-gradient(ellipse 70% 50% at 100% 10%, rgba(110, 98, 86, 0.09), transparent 50%);
         color: var(--text);
         line-height: 1.65;
         font-size: 1.05rem;
       }
       a {
-        color: var(--accent);
+        color: #157a42;
         text-decoration: none;
       }
       a:hover {
@@ -68,7 +71,7 @@
         gap: 1rem;
         flex-wrap: wrap;
         padding: 0.85rem 1.5rem;
-        background: rgba(10, 13, 18, 0.85);
+        background: rgba(247, 245, 242, 0.9);
         backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--border);
       }
@@ -77,7 +80,12 @@
         font-weight: 600;
         font-size: 1.1rem;
         letter-spacing: -0.02em;
-        color: var(--text);
+        color: var(--ink);
+        text-decoration: none;
+      }
+      .nav__brand:hover {
+        color: var(--ink-hover);
+        text-decoration: none;
       }
       .nav__brand span {
         color: var(--accent);
@@ -92,7 +100,7 @@
         color: var(--muted);
       }
       .nav__links a:hover {
-        color: var(--accent);
+        color: var(--ink);
       }
       .btn {
         display: inline-flex;
@@ -103,17 +111,18 @@
         font-family: inherit;
         font-size: 0.95rem;
         font-weight: 600;
-        border-radius: 10px;
-        border: 1px solid var(--accent-dim, #2a9d82);
-        background: rgba(62, 228, 198, 0.12);
-        color: var(--accent);
+        border-radius: 12px;
+        border: 1px solid var(--ink);
+        background: var(--ink);
+        color: #fff;
         cursor: pointer;
-        transition: background 0.15s, border-color 0.15s;
+        transition: background 0.15s, border-color 0.15s, color 0.15s;
       }
       .btn:hover {
-        background: rgba(62, 228, 198, 0.22);
+        background: var(--ink-hover);
+        border-color: var(--ink-hover);
         text-decoration: none;
-        color: var(--accent-hover);
+        color: #fff;
       }
       .btn--ghost {
         background: transparent;
@@ -121,8 +130,9 @@
         color: var(--muted);
       }
       .btn--ghost:hover {
-        border-color: var(--accent);
-        color: var(--accent);
+        border-color: var(--ink);
+        color: var(--ink);
+        background: rgba(10, 10, 10, 0.04);
       }
       .wrap {
         max-width: 900px;
@@ -138,11 +148,12 @@
         font-weight: 600;
         letter-spacing: 0.1em;
         text-transform: uppercase;
-        color: var(--accent);
-        border: 1px solid rgba(62, 228, 198, 0.35);
+        color: var(--muted);
+        border: 1px solid rgba(32, 189, 90, 0.35);
         padding: 0.3rem 0.75rem;
         border-radius: 999px;
         margin-bottom: 1.25rem;
+        background: rgba(255, 255, 255, 0.7);
       }
       h1 {
         font-size: clamp(2.1rem, 5.5vw, 3rem);
@@ -217,7 +228,7 @@
         border-left: 3px solid var(--warn);
         padding: 0.5rem 0 0.5rem 1rem;
         margin: 1rem 0 0;
-        background: rgba(240, 198, 116, 0.06);
+        background: rgba(245, 158, 11, 0.1);
         border-radius: 0 8px 8px 0;
       }
       footer {
@@ -266,7 +277,7 @@
           <!-- Sustituye la URL por la de tu fork si aplica -->
           <a
             class="btn"
-            href="https://github.com/angieshadai/zscan"
+            href="https://github.com/angievic/zscan"
             rel="noopener noreferrer"
             >Ver en GitHub</a
           >
@@ -354,7 +365,7 @@
           Requiere <strong>Node.js 18+</strong>. Clona el repositorio y compila en local (no hace
           falta publicar en npm para usar la herramienta).
         </p>
-        <pre><code>git clone https://github.com/angieshadai/zscan.git
+        <pre><code>git clone https://github.com/angievic/zscan.git
 cd zscan
 npm install
 npm run build</code></pre>
@@ -383,7 +394,7 @@ npm test
 npm run test:integration:ollama</code></pre>
         <p style="color: var(--muted); margin: 0">
           Referencia completa (variables <code>ZSCAN_*</code>, CLI, VS Code, pre-commit):
-          <a href="https://github.com/angieshadai/zscan/blob/main/README.md#referencia-de-configuración"
+          <a href="https://github.com/angievic/zscan/blob/main/README.md#referencia-de-configuración"
             >README → Referencia de configuración</a
           >.
         </p>
@@ -415,23 +426,23 @@ node dist/cli.js scan --root . --no-enrich-docs --markdown reporte.md</code></pr
         <p style="color: var(--muted); margin-top: 0">
           El <strong>README</strong> del repositorio concentra la referencia: <code>zscan.yaml</code>,
           todas las variables <code>ZSCAN_*</code> (plantilla
-          <a href="https://github.com/angieshadai/zscan/blob/main/.env.example">.env.example</a>),
+          <a href="https://github.com/angievic/zscan/blob/main/.env.example">.env.example</a>),
           tabla de subcomandos CLI, atajo <code>./zscan</code>, tareas
-          <a href="https://github.com/angieshadai/zscan/tree/main/contrib/vscode">VS Code / Cursor</a>
+          <a href="https://github.com/angievic/zscan/tree/main/contrib/vscode">VS Code / Cursor</a>
           y
-          <a href="https://github.com/angieshadai/zscan/tree/main/contrib/pre-commit">pre-commit</a>.
+          <a href="https://github.com/angievic/zscan/tree/main/contrib/pre-commit">pre-commit</a>.
           Script opcional
-          <a href="https://github.com/angieshadai/zscan/blob/main/scripts/ensure-ollama.sh"
+          <a href="https://github.com/angievic/zscan/blob/main/scripts/ensure-ollama.sh"
             ><code>scripts/ensure-ollama.sh</code></a
           >
           (instalar / levantar Ollama en macOS/Linux).
         </p>
         <ul style="color: var(--muted); padding-left: 1.25rem; margin: 0">
           <li>
-            <a href="https://github.com/angieshadai/zscan/blob/main/README.md">README.md (GitHub)</a>
+            <a href="https://github.com/angievic/zscan/blob/main/README.md">README.md (GitHub)</a>
           </li>
           <li>
-            <a href="https://github.com/angieshadai/zscan/blob/main/zscan.yaml">zscan.yaml de ejemplo</a>
+            <a href="https://github.com/angievic/zscan/blob/main/zscan.yaml">zscan.yaml de ejemplo</a>
           </li>
           <li>
             <a href="https://ollama.com/">Ollama</a> ·
@@ -465,12 +476,12 @@ node dist/cli.js scan --root . --no-enrich-docs --markdown reporte.md</code></pr
       <footer>
         <p>
           <strong>zscan</strong> — MIT ·
-          <a href="https://github.com/angieshadai/zscan/blob/main/README.md">README</a> · Visión:
+          <a href="https://github.com/angievic/zscan/blob/main/README.md">README</a> · Visión:
           <a href="./vision-agente-seguridad.md">vision-agente-seguridad.md</a>
         </p>
         <p>
           Si el repo o GitHub Pages son otros, edita enlaces en <code>docs/index.html</code> (busca
-          <code>angieshadai/zscan</code>).
+          <code>angievic/zscan</code>).
         </p>
       </footer>
     </main>
