@@ -362,7 +362,6 @@
         <a href="#comandos">Comandos</a>
         <a href="#enriquecimiento">Referencias CVE</a>
         <a href="#referencia">Config</a>
-        <a href="#paginas">GitHub Pages</a>
         <a href="./vision-agente-seguridad.md">Visión</a>
       </nav>
     </header>
@@ -585,25 +584,6 @@ node dist/cli.js scan-all --root . --no-enrich-docs</code></pre>
             <a href="https://code.visualstudio.com/docs/editor/tasks">Tareas VS Code</a>
           </li>
         </ul>
-      </section>
-
-      <section id="paginas">
-        <h2>Publicar esta web (GitHub Pages)</h2>
-        <p class="section-intro">
-          Sitio estático en <code>docs/</code>. Sin workflows ni npm en el despliegue:
-        </p>
-        <ol class="muted" style="padding-left: 1.25rem">
-          <li>GitHub → <strong>Settings</strong> → <strong>Pages</strong>.</li>
-          <li><strong>Deploy from a branch</strong>.</li>
-          <li>Rama principal y carpeta <strong>/docs</strong>.</li>
-          <li>URL: <code>https://&lt;usuario&gt;.github.io/&lt;repo&gt;/</code></li>
-        </ol>
-        <p class="note">
-          <code>docs/.nojekyll</code> evita que Jekyll transforme los archivos. La URL pública es
-          siempre <code>https://&lt;dueño-del-repo-en-GitHub&gt;.github.io/&lt;repo&gt;/</code> (el
-          mismo usuario u org a quien hacés <code>git push</code>). Si ves HTML viejo, comprobá en
-          Settings → Pages la rama y <code>/docs</code>, y probá recarga forzada (Mayús+Recargar).
-        </p>
       </section>
 
       <footer>
