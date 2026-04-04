@@ -41,6 +41,7 @@ const BUCKETS: Bucket[] = [
 ];
 
 const EXTRA_IGNORE = [
+  "**/zscan-runs/**",
   "**/zscan-self-report.md",
   "**/zscan-report.md",
   "**/examples/**",

@@ -39,6 +39,9 @@ case "$cmd" in
   scan)
     exec node dist/cli.js scan --root "$ROOT" "$@"
     ;;
+  scan-all)
+    exec node dist/cli.js scan-all --root "$ROOT" "$@"
+    ;;
   prompt-scan|prompts)
     exec node dist/cli.js prompt-scan --root "$ROOT" "$@"
     ;;
@@ -58,11 +61,12 @@ zscan — atajo local
   ./zscan config    Asistente: OpenAI, Ollama, Gemini o Claude (+ ping)
   ./zscan probe     Ping al LLM configurado (Ollama, OpenAI, …)
   ./zscan scan      Escanea dependencias (mismo criterio de raíz que abajo)
+  ./zscan scan-all  Escaneo completo + run en zscan-runs/ (HTML, JSON, MD); sin Markdown en stdout salvo --print
   ./zscan prompt-scan  Evalúa prompts (YAML + heurísticas); alias: prompts
   ./zscan ollama    Instala Ollama si falta (brew/Linux) y arranca serve si :11434 cae; --no-install solo serve
   ./zscan serve     Servidor HTTP local (127.0.0.1:8787 por defecto)
   ./zscan init      Crea o actualiza zscan.yaml (usa --force si aplica)
-  ./zscan <cmd>     Cualquier comando del CLI: ./zscan scan --markdown r.md
+  ./zscan <cmd>     Cualquier subcomando del CLI (p. ej. scan, scan-all, init)
 
 Raíz del proyecto:
   Por defecto: raíz del repo git si estás dentro de uno, si no el cwd.
@@ -70,7 +74,7 @@ Raíz del proyecto:
 
 Ejemplos:
   ./zscan probe
-  ./zscan scan --markdown reporte.md --no-print
+  ./zscan scan-all
   ZSCAN_ROOT=~/mi-app ./zscan scan
 EOF
     ;;

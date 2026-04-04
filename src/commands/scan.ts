@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import { toJson, toMarkdown } from "../report.js";
+import { writeScanBundle } from "../report/writeScanBundle.js";
 import {
   performCombinedScan,
   promptChecksFailed,
@@ -17,6 +18,10 @@ export async function runScan(
     /** Por defecto true: scraping de referencias OSV. */
     enrichDocs?: boolean;
     skipPromptLlm?: boolean;
+    /** Por defecto true: patrones de llaves / auth en código. */
+    secretAuthScan?: boolean;
+    /** Directorio padre donde se crea `zscan-runs/<id>-scan` (o el nombre que elijas) con HTML, JSON y MD. */
+    reportBundleParent?: string;
   }
 ) {
   const { result, errorMessage, promptScanHardFail } = await performCombinedScan(
@@ -26,6 +31,7 @@ export async function runScan(
       offline: out.offline,
       bypassOsvCache: out.bypassOsvCache,
       enrichDocs: out.enrichDocs !== false,
+      secretAuthScan: out.secretAuthScan !== false,
     },
     { skipLlm: out.skipPromptLlm === true }
   );
@@ -44,6 +50,10 @@ export async function runScan(
     fs.writeFileSync(out.markdown, toMarkdown(result), "utf8");
     console.log(`Markdown: ${out.markdown}`);
   }
+  if (out.reportBundleParent) {
+    const dir = writeScanBundle(out.reportBundleParent, result);
+    console.log(`Paquete de informe: ${dir}`);
+  }
   if (out.print) {
     console.log(toMarkdown(result));
   }
@@ -52,10 +62,13 @@ export async function runScan(
     (n, e) => n + e.findings.filter((f) => f.vulns.length).length,
     0
   );
+  const secretAuthCritical =
+    result.secretAuthScan?.nivel === "riesgo_alto_heuristico";
   if (
     vulnCount ||
     promptScanHardFail ||
-    promptChecksFailed(result)
+    promptChecksFailed(result) ||
+    secretAuthCritical
   ) {
     process.exitCode = 1;
   }

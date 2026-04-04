@@ -42,6 +42,7 @@ import {
   collectRubyImportHints,
   type ScanWalkOptions,
 } from "./importHints.js";
+import { scanSecretsAndAuth } from "./secretsAndAuthScan.js";
 import type {
   EcosystemScanResult,
   ScanFinding,
@@ -65,6 +66,8 @@ export interface ProjectScanOptions {
   osvCacheDir?: string;
   enrichDocs?: boolean;
   enrichCacheDir?: string;
+  /** Por defecto true: heurísticas de llaves / autenticación en código. */
+  secretAuthScan?: boolean;
 }
 
 export interface ProjectScanOutcome {
@@ -221,7 +224,14 @@ export async function performProjectScan(
 
   const result: ScanResult = { root: abs, git, ecosystems, meta };
 
-  if (options.enrichDocs) {
+  if (options.secretAuthScan !== false) {
+    result.secretAuthScan = scanSecretsAndAuth(abs, {
+      ignoreSubmodules: options.ignoreSubmodules,
+      git,
+    });
+  }
+
+  if (options.enrichDocs !== false) {
     await applyDocEnrichment(result, {
       cacheDir: options.enrichCacheDir ?? defaultEnrichCacheDir(),
     });

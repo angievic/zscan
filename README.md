@@ -13,6 +13,7 @@ CLI y librería **local** para auditar dependencias contra [OSV](https://osv.dev
 ## Tabla de contenidos
 
 - [Instalación desde GitHub](#instalación-desde-github)
+- [Dependencia en otro proyecto (cualquier lenguaje)](#dependencia-en-otro-proyecto-cualquier-lenguaje)
 - [GitHub Pages (sitio estático)](#github-pages-sitio-estático)
 - [Uso rápido](#uso-rápido)
 - [Referencia de configuración](#referencia-de-configuración)
@@ -51,6 +52,72 @@ Variable **`ZSCAN_ROOT`**: raíz del proyecto a escanear (por defecto: raíz del
 
 ---
 
+## Dependencia en otro proyecto (cualquier lenguaje)
+
+El **repositorio que escaneás** puede estar en **Python, Go, Ruby, Java, Rust**, etc. **zscan no sustituye al runtime de tu app**: solo necesitas **Node.js 18+** en la máquina o en CI para **instalar y ejecutar** la CLI; el lockfile y el código del otro proyecto no tienen que ser Node.
+
+### Opción recomendada: `devDependency` con npm / pnpm / Yarn
+
+Aunque el producto no sea una app Node, es habitual tener un **`package.json` mínimo** en la raíz (solo herramientas: linters, zscan, etc.).
+
+**Instalar desde GitHub** (sin depender de npmjs):
+
+```bash
+npm install --save-dev github:angieshadai/zscan
+```
+
+```bash
+pnpm add -D github:angieshadai/zscan
+yarn add -D github:angieshadai/zscan
+```
+
+**Compilar** zscan dentro de `node_modules` (el paquete trae fuente TypeScript; hace falta generar `dist/`):
+
+```bash
+npm explore zscan -- npm install && npm run build
+```
+
+(Equivalente manual: `cd node_modules/zscan && npm install && npm run build`.)
+
+**Escanear** tu repo (raíz del producto = `.`):
+
+```bash
+npx zscan scan-all --root .
+# o:
+node node_modules/zscan/dist/cli.js scan-all --root .
+```
+
+**Fijar rama o tag** (reproducibilidad):
+
+```bash
+npm install --save-dev "git+https://github.com/angieshadai/zscan.git#main"
+npm install --save-dev "git+https://github.com/angieshadai/zscan.git#v0.1.0"
+```
+
+**Script en el `package.json` del producto** (ejemplo):
+
+```json
+{
+  "scripts": {
+    "security:scan": "zscan scan-all --root ."
+  }
+}
+```
+
+Si **publicás zscan en npm** ([Publicación opcional en npm](#publicación-opcional-en-npm)), podés usar `npm install --save-dev zscan`: el paquete publicado incluye `dist/` y suele **no** requerir build manual tras instalar.
+
+### Sin `package.json` en el repo del producto
+
+- **Submódulo Git**: por ejemplo `git submodule add https://github.com/angieshadai/zscan.git tools/zscan` → en `tools/zscan` ejecutás `npm ci && npm run build` y llamás `node tools/zscan/dist/cli.js scan-all --root ..` (o `--root` absoluto al repo de la app).
+- **Clonar aparte**: igual que [Instalación desde GitHub](#instalación-desde-github) y escanear con **`ZSCAN_ROOT=/ruta/al/otro/repo`** o **`--root /ruta/al/otro/repo`**.
+- **CI / Docker**: imagen con Node 18+, checkout o copia de zscan, `npm ci && npm run build`, luego `node …/dist/cli.js scan-all --root "$CI_PROJECT_DIR"` (o la ruta de tu código).
+
+### pre-commit y otros orquestadores
+
+Podés invocar la misma CLI desde **pre-commit**, **Makefile**, **Taskfile**, **Just**, etc.; solo necesitás una ruta estable a `dist/cli.js` (tras build) y pasar **`--root`** al directorio del proyecto. Ejemplo de hook: [contrib/pre-commit/sample.pre-commit-config.yaml](contrib/pre-commit/sample.pre-commit-config.yaml).
+
+---
+
 ## GitHub Pages (sitio estático)
 
 La landing pública vive en **`docs/`** (`index.html` + `.nojekyll`), lista para **GitHub Pages sin workflows ni npm** en el despliegue del sitio.
@@ -71,18 +138,20 @@ Si el fork o el usuario no es `angieshadai/zscan`, actualiza los enlaces en `doc
 
 ```bash
 node dist/cli.js init --root /ruta/al/proyecto
-node dist/cli.js scan --root /ruta/al/proyecto --markdown reporte.md
+node dist/cli.js scan-all --root /ruta/al/proyecto
 ```
 
 **`init`** genera `zscan.yaml` recorriendo el proyecto (sin `node_modules`, `dist`, `.git`, …) y rellenando **`prompts[]`** con: (1) **Markdown** y convenciones de agentes (`docs/`, `prompts/`, `.cursor/`, `*.prompt.md`, `AGENTS.md` / `CLAUDE.md` / `GEMINI.md`, `README.md`, `contrib/`, …) cuando hay al menos un fichero; (2) **código fuente** bajo `src/`, `lib/`, `app/`, `cmd/`, `pkg/`, `internal/` — globs `*.{ts,tsx,js,jsx,mjs,cjs,py,rb,go,java,kt}` solo si una muestra de ficheros contiene **literales largos** (template literals JS, triple quotes Python, strings entre comillas, etc.) y **señales típicas de prompts/LLM** (heurística, sin AST). Si no hay nada de lo anterior, deja plantilla `docs/**/*.md` + `prompts/**/*.md`. Incluye la regla `no_instruction_override` y `explicit_core` desde el lockfile JS si existe.
 
 - **`scan`** arma un **único informe** (Markdown/JSON): dependencias + OSV + (por defecto) **enriquecimiento** de URLs de advisories + **prompt-scan** según `prompts[]` en `zscan.yaml`.
 - Código de salida **1** si hay vulnerabilidades OSV, si **prompt-scan** tiene fallos, o si la configuración de prompts es errónea (p. ej. globs sin archivos).
-- `--json report.json` añade salida JSON.
+- `--json` / `--markdown` con ruta explícita solo si necesitas copias **fuera** del run (p. ej. CI); el flujo habitual es **`--report-bundle`** (todo dentro de `zscan-runs/<id>-scan/`).
 - `--no-enrich-docs` omite el scraping de referencias OSV (más rápido).
 - `--no-prompt-llm` evita llamar al modelo en el bloque de prompts (solo regex + heurísticas).
 - `--enrich-docs` queda **obsoleto** (sin efecto; compatibilidad con scripts antiguos).
 - `--ignore-submodules` excluye rutas bajo submódulos Git al mapear imports.
+- **`scan-all`** es el atajo recomendado: equivale a **`scan --report-bundle --no-print`** con padre por defecto **`zscan-runs`** (ver tabla de comandos).
+- **`--report-bundle`** en `scan` hace lo mismo de forma explícita: bajo el directorio padre (por defecto **`./zscan-runs`**) se crea **`zscan-runs/<id-hex>-scan/`** con: `report.json` (`ScanResult` indentado), **`informe.json`** (vista por pestañas, `zscanInformeVersion`), **`prompts.json`** (siempre; `zscanPromptsInformeVersion` + `resultado` / `mensaje`), `report.html` (mismas secciones por pestañas), `informe.md`, `prompts.md` si aplica, y `ecosystems/*.{json,md}`. Sin bundle solo hay **stdout** (y rutas `--json` / `--markdown` solo si las pasas). La ruta creada se imprime como `Paquete de informe: ...`. Ejemplo de otro padre: `--report-bundle ./runs` → `./runs/<id>-scan/`.
 
 ---
 
@@ -137,9 +206,9 @@ node dist/cli.js serve --host 127.0.0.1 --port 8787
 Además de los datos estructurados de **OSV**, **`scan`** **enriquece por defecto** cada hallazgo bajando la **primera URL https** del advisory en `references`, convirtiendo el HTML a texto y pegando un **extracto** en el informe (JSON: `meta.docSnippets`). Sirve para **contexto narrativo** (mitigación, detalle del vendor) al pegar el reporte en un asistente.
 
 ```bash
-node dist/cli.js scan --root . --markdown reporte.md
+node dist/cli.js scan --root . --report-bundle --no-print
 # sin scraping (más rápido):
-node dist/cli.js scan --root . --no-enrich-docs --markdown reporte.md
+node dist/cli.js scan --root . --no-enrich-docs --report-bundle --no-print
 ```
 
 - **Caché:** `~/.cache/zscan/enrich` o **`ZSCAN_ENRICH_CACHE_DIR`**; TTL **7 días** por URL.
@@ -192,24 +261,17 @@ Detalle y comentarios: **[`.env.example`](.env.example)**.
 
 ### Comandos CLI
 
-Ayuda global y por subcomando:
+Ayuda: `node dist/cli.js --help` y `node dist/cli.js <comando> --help`. Desarrollo sin compilar: **`npm run dev -- <cmd>`** (ej. `npm run dev -- scan-all --help`) con [`tsx`](https://github.com/privatenumber/tsx).
 
-```bash
-node dist/cli.js --help
-node dist/cli.js scan --help
-node dist/cli.js prompt-scan --help
-```
-
-| Comando | Alias | Descripción |
-|---------|--------|-------------|
-| `init` | — | Crea [`zscan.yaml`](zscan.yaml); `--force` sobrescribe. |
-| `config` | — | Asistente interactivo LLM (OpenAI, Ollama, Gemini, Claude) y `.env.local`. |
-| `llm-probe` | `llm-ping` | Ping al modelo según YAML + `.env.local`. |
-| `prompt-scan` | `prompts` | Solo evaluación de `prompts[]` / reglas; `--no-llm` sin modelo. |
-| `scan` | — | Informe único: dependencias, OSV, scraping opcional, prompt-scan integrado. |
-| `serve` | — | HTTP local: `GET /health`, `POST /scan` (JSON). |
-
-Desarrollo sin compilar: **`npm run dev -- <cmd>`** (ej. `npm run dev -- scan --root . --help`) usando [`tsx`](https://github.com/privatenumber/tsx).
+| Comando | Uso típico | Parámetros (principales) | Descripción |
+|---------|------------|--------------------------|-------------|
+| **`init`** | `init --root .` | `--root <dir>` (def. `.`), `--force` | Genera [`zscan.yaml`](zscan.yaml); `--force` sobrescribe el fichero. |
+| **`config`** | `config --root .` | `--root <dir>` | Asistente interactivo: proveedor LLM, modelo y API key → **`.env.local`**. |
+| **`llm-probe`** | `llm-probe --root .` | `--root <dir>` | Alias: **`llm-ping`**. Comprueba que el modelo responde según YAML + `.env.local`. |
+| **`prompt-scan`** | `prompt-scan --root .` | `--root`, `--json <f>`, `--markdown <f>`, `--no-print`, `--no-llm` | Alias: **`prompts`**. Solo evalúa `prompts[]` (heurísticas, regex, LLM si está activo). |
+| **`scan`** | `scan --root .` | `--root`, `--report-bundle [dir]`, `--no-print`, `--json`, `--markdown`, `--offline`, `--refresh-osv`, `--no-enrich-docs`, `--no-prompt-llm`, `--ignore-submodules` | Informe único: lockfiles, OSV, scraping de referencias (por defecto), imports, prompt-scan integrado. Sin `--report-bundle` el Markdown va a **stdout** salvo `--no-print`. |
+| **`scan-all`** | `scan-all --root .` | Igual que `scan` salvo bundle: **`--bundle-parent <dir>`** (def. `zscan-runs`), **`--print`** (opcional, también stdout), más `--json` / `--markdown` adicionales, `--offline`, `--refresh-osv`, `--no-enrich-docs`, `--no-prompt-llm`, `--ignore-submodules` | **Atajo recomendado**: siempre escribe un run en **`<bundle-parent>/<id>-scan/`** (HTML, JSON, MD por ecosistema, prompts). Por defecto **no** imprime el Markdown completo por stdout (usa `--print` si lo quieres). Equivale a `scan --report-bundle --no-print` con el mismo padre. |
+| **`serve`** | `serve --port 8787` | `--host <addr>` (def. `127.0.0.1`), `--port <n>` (def. `8787`) | API HTTP local: **`GET /health`**, **`POST /scan`** (cuerpo JSON con opciones de escaneo). |
 
 ### Atajo `./zscan` (este repositorio)
 
@@ -218,6 +280,7 @@ Script [`zscan`](zscan): instala dependencias y compila si hace falta; usa **`ZS
 | Invocación | Equivale a |
 |------------|------------|
 | `./zscan scan` | `scan --root <raíz>` |
+| `./zscan scan-all` | `scan-all --root <raíz>` (run en `zscan-runs/` por defecto) |
 | `./zscan probe` | `llm-probe` |
 | `./zscan init` | `init` |
 | `./zscan config` | `config` |
@@ -232,7 +295,7 @@ Ayuda: `./zscan help`. Documentación del intérprete: [GNU Bash](https://www.gn
 
 1. Lee la guía del repo: **[contrib/vscode/README.md](contrib/vscode/README.md)**.
 2. Copia **[contrib/vscode/tasks.json](contrib/vscode/tasks.json)** a **`.vscode/tasks.json`** del workspace (o fusiona las entradas `zscan:*`).
-3. En la paleta: **Tasks: Run Task** → p. ej. **`zscan: scan (this folder)`** (genera `zscan-report.md` en la raíz del workspace) o **`zscan: serve HTTP`**.
+3. En la paleta: **Tasks: Run Task** → p. ej. **`zscan: scan (this folder)`** (crea un run bajo **`zscan-runs/<id>-scan/`** en el workspace) o **`zscan: serve HTTP`**.
 
 Referencias oficiales:
 
@@ -291,7 +354,8 @@ Sin la variable `ZSCAN_INTEGRATION_OLLAMA=1`, la suite de integración **no se e
 | `npm run ollama:ensure` | Instala Ollama si falta (macOS/Homebrew, Linux/script) y arranca `serve` si :11434 no responde |
 | `npm run test:integration:ollama` | `ollama:ensure` + integración con `ZSCAN_INTEGRATION_OLLAMA=1` |
 | `npm run scan:self` | Escanea este proyecto (Markdown por stdout; **exit 1** si hay hallazgos OSV) |
-| `npm run scan:self:save` | Igual, pero escribe `zscan-self-report.md` y `.json` (gitignored) sin imprimir |
+| `npm run scan:self:save` | Igual en disco: **`scan-all --root .`** → run en **`zscan-runs/<id>-scan/`** |
+| `npm run scan:all` | Igual que `scan:self:save` (nombre explícito para “todo en un paso”) |
 | `npm run scan:example` | Escanea `examples/test-app` |
 | `npm run scan:test-py` | Escanea `examples/test-py` |
 | `npm run scan:test-yarn` | Escanea `examples/test-yarn` |

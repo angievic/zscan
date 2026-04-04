@@ -1,3 +1,6 @@
+import * as path from "node:path";
+import { loadConfig } from "../config.js";
+import { buildLlmUsageSnapshot } from "../llm/usageSnapshot.js";
 import { runPromptScanCore } from "../prompt/runPromptScan.js";
 import type { ScanResult } from "../types.js";
 import {
@@ -24,7 +27,10 @@ export async function performCombinedScan(
   depOpts: ProjectScanOptions,
   promptOpts: { skipLlm?: boolean }
 ): Promise<CombinedScanOutcome> {
-  const { result, errorMessage } = await performProjectScan(root, depOpts);
+  const { result, errorMessage } = await performProjectScan(root, {
+    ...depOpts,
+    secretAuthScan: depOpts.secretAuthScan !== false,
+  });
   if (!result) {
     return { result: null, errorMessage, promptScanHardFail: false };
   }
@@ -41,6 +47,8 @@ export async function performCombinedScan(
     result.promptScanMessage = pe;
     if (!isPromptScanOptionalSkip(pe)) promptScanHardFail = true;
   }
+
+  result.llmUsage = buildLlmUsageSnapshot(loadConfig(path.resolve(root)));
 
   result.meta = {
     ...result.meta,

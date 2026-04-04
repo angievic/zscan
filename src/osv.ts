@@ -5,6 +5,7 @@ import * as path from "node:path";
 import type { LockfilePackage, OsvEcosystem, OsvVuln } from "./types.js";
 
 const OSV_BATCH = "https://api.osv.dev/v1/querybatch";
+const OSV_VULN = "https://api.osv.dev/v1/vulns";
 
 export function defaultOsvCacheDir(): string {
   return process.env.ZSCAN_OSV_CACHE_DIR?.trim() || path.join(os.homedir(), ".cache", "zscan", "osv");
@@ -128,4 +129,18 @@ export async function queryOsvBatch(
   }
 
   return out;
+}
+
+/**
+ * Registro completo de una vulnerabilidad (incluye `references` con URLs).
+ * El batch `/v1/querybatch` suele devolver entradas sin hidratar (sin `references`).
+ */
+export async function fetchOsvVulnDetail(id: string): Promise<OsvVuln | null> {
+  try {
+    const res = await fetch(`${OSV_VULN}/${encodeURIComponent(id)}`);
+    if (!res.ok) return null;
+    return (await res.json()) as OsvVuln;
+  } catch {
+    return null;
+  }
 }

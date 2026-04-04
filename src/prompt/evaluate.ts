@@ -1,5 +1,15 @@
 import type { ZscanConfig } from "../config.js";
 import { BUILTIN_HEURISTICS } from "./builtin-heuristics.js";
+import {
+  analyzePromptDataSensitivity,
+  type PromptDataSensitivityAssessment,
+} from "./promptDataSensitivity.js";
+
+export type {
+  PromptDataSensitivityAssessment,
+  PromptDataSensitivityDetail,
+  PromptDataSensitivityLevel,
+} from "./promptDataSensitivity.js";
 
 export type PromptFindingOrigin = "yaml_rule" | "heuristic" | "llm";
 
@@ -23,6 +33,8 @@ export interface PromptFileResult {
   /** Mínimo de los scorePercent de cada check (estricto). */
   scorePercent: number;
   checks: PromptRuleResult[];
+  /** Qué tipo de datos parece entrar al prompt y sensibilidad inferida (heurístico). */
+  dataSensitivity: PromptDataSensitivityAssessment;
 }
 
 export interface PromptScanResult {
@@ -156,6 +168,7 @@ export function evaluatePromptContent(
 
   const scores = checks.map((c) => c.scorePercent);
   const fileScore = scores.length ? Math.min(...scores) : 100;
+  const dataSensitivity = analyzePromptDataSensitivity(content);
 
   return {
     fileResult: {
@@ -164,6 +177,7 @@ export function evaluatePromptContent(
       purpose,
       scorePercent: fileScore,
       checks,
+      dataSensitivity,
     },
     skipped,
     patternErrors,

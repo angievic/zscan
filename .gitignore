@@ -5,6 +5,8 @@ dist/
 .env
 .env.local
 coverage/
+zscan-runs/
+# Nombres antiguos (scripts ya no los generan; evita commits accidentales)
 zscan-self-report.md
 zscan-self-report.json
 examples/test-app/zscan-report.md

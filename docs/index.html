@@ -378,16 +378,16 @@ npm run build</code></pre>
       <section id="comandos">
         <h2>Comandos rápidos</h2>
         <pre><code>node dist/cli.js init --root .
-node dist/cli.js scan --root . --markdown reporte.md
-node dist/cli.js scan --root . --no-enrich-docs --markdown reporte.md   # sin scraping CVE
-node dist/cli.js scan --root . --no-prompt-llm --markdown reporte.md   # prompts sin LLM
+node dist/cli.js scan-all --root .
+node dist/cli.js scan-all --root . --no-enrich-docs   # sin scraping CVE
+node dist/cli.js scan-all --root . --no-prompt-llm   # prompts sin LLM
 node dist/cli.js config --root .
 node dist/cli.js llm-probe --root .
 node dist/cli.js prompt-scan --root .
 node dist/cli.js serve --port 8787
 
 # Atajo en el repo clonado (instala/compila si hace falta):
-./zscan scan --markdown reporte.md
+./zscan scan-all
 
 # Desarrollo del propio zscan
 npm test
@@ -410,10 +410,10 @@ npm run test:integration:ollama</code></pre>
           con <strong>caché en disco</strong> (TTL ~7 días). No sustituye a OSV: complementa el informe.
         </p>
         <pre><code># Comportamiento por defecto (con scraping):
-node dist/cli.js scan --root . --markdown reporte.md
+node dist/cli.js scan-all --root .
 
 # Sin red a esas URLs / más rápido:
-node dist/cli.js scan --root . --no-enrich-docs --markdown reporte.md</code></pre>
+node dist/cli.js scan-all --root . --no-enrich-docs</code></pre>
         <p class="note" style="margin-top: 1rem">
           Variable <code>ZSCAN_ENRICH_CACHE_DIR</code>. API <code>POST /scan</code>: omite scraping
           con <code>"enrichDocs": false</code>. Roadmap en

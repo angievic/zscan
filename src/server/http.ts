@@ -58,6 +58,7 @@ export function createZscanServer(): http.Server {
           bypassOsvCache?: boolean;
           enrichDocs?: boolean;
           skipPromptLlm?: boolean;
+          secretAuthScan?: boolean;
         };
         try {
           body = raw ? (JSON.parse(raw) as typeof body) : {};
@@ -76,6 +77,7 @@ export function createZscanServer(): http.Server {
               offline: Boolean(body.offline),
               bypassOsvCache: Boolean(body.bypassOsvCache),
               enrichDocs,
+              secretAuthScan: body.secretAuthScan !== false,
             },
             { skipLlm: Boolean(body.skipPromptLlm) }
           );

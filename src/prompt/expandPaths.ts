@@ -8,6 +8,7 @@ export const PROMPT_PATH_IGNORE = [
   "**/dist/**",
   "**/.venv/**",
   "**/venv/**",
+  "**/zscan-runs/**",
 ];
 
 /**

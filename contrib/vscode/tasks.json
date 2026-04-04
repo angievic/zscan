@@ -11,7 +11,7 @@
     {
       "label": "zscan: scan (this folder)",
       "type": "shell",
-      "command": "node dist/cli.js scan --root ${workspaceFolder} --markdown ${workspaceFolder}/zscan-report.md",
+      "command": "node dist/cli.js scan-all --root ${workspaceFolder}",
       "dependsOn": ["zscan: build"],
       "group": "test",
       "problemMatcher": []
