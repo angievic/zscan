@@ -2,13 +2,13 @@
   "name": "zscan",
   "version": "0.1.0",
   "description": "Local security scanner for JS/Python repos: dependency vulns (OSV), reports for AI-assisted fixes",
-  "homepage": "https://angieshadai.github.io/zscan/",
+  "homepage": "https://angievic.github.io/zscan/",
   "repository": {
     "type": "git",
-    "url": "https://github.com/angieshadai/zscan.git"
+    "url": "https://github.com/angievic/zscan.git"
   },
   "bugs": {
-    "url": "https://github.com/angieshadai/zscan/issues"
+    "url": "https://github.com/angievic/zscan/issues"
   },
   "type": "module",
   "bin": {

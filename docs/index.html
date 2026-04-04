@@ -2,6 +2,11 @@
 <html lang="es">
   <head>
     <meta charset="utf-8" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>zscan — seguridad local (OSV, informes, prompts)</title>
     <meta
@@ -376,7 +381,7 @@
         <div class="hero__actions">
           <a
             class="btn"
-            href="https://github.com/angieshadai/zscan"
+            href="https://github.com/angievic/zscan"
             rel="noopener noreferrer"
             >Ver en GitHub</a
           >
@@ -404,11 +409,11 @@
             <p class="step-body">
               Cloná el repositorio (o instalalo como
               <code>devDependency</code> desde GitHub; ver
-              <a href="https://github.com/angieshadai/zscan/blob/main/README.md#dependencia-en-otro-proyecto-cualquier-lenguaje"
+              <a href="https://github.com/angievic/zscan/blob/main/README.md#dependencia-en-otro-proyecto-cualquier-lenguaje"
                 >README</a
               >).
             </p>
-            <pre><code>git clone https://github.com/angieshadai/zscan.git
+            <pre><code>git clone https://github.com/angievic/zscan.git
 cd zscan</code></pre>
           </li>
           <li>
@@ -454,7 +459,7 @@ node /ruta/a/zscan/dist/cli.js scan-all --root .</code></pre>
           <div class="quick-tile">
             <dt>Documentación</dt>
             <dd>
-              <a href="https://github.com/angieshadai/zscan/blob/main/README.md">README completo</a>
+              <a href="https://github.com/angievic/zscan/blob/main/README.md">README completo</a>
               en GitHub.
             </dd>
           </div>
@@ -514,7 +519,7 @@ node /ruta/a/zscan/dist/cli.js scan-all --root .</code></pre>
           Mismo flujo que el paso 2–3 del inicio rápido. No hace falta publicar en npm para usar la
           herramienta.
         </p>
-        <pre><code>git clone https://github.com/angieshadai/zscan.git
+        <pre><code>git clone https://github.com/angievic/zscan.git
 cd zscan
 npm install
 npm run build</code></pre>
@@ -540,7 +545,7 @@ node dist/cli.js serve --port 8787
 npm test</code></pre>
         <p class="muted" style="margin: 0">
           Referencia completa:
-          <a href="https://github.com/angieshadai/zscan/blob/main/README.md#referencia-de-configuración"
+          <a href="https://github.com/angievic/zscan/blob/main/README.md#referencia-de-configuración"
             >README → Referencia de configuración</a
           >.
         </p>
@@ -565,13 +570,13 @@ node dist/cli.js scan-all --root . --no-enrich-docs</code></pre>
       <section id="referencia">
         <h2>Configuración y flujo de trabajo</h2>
         <p class="section-intro">
-          <a href="https://github.com/angieshadai/zscan/blob/main/README.md">README.md</a>,
-          <a href="https://github.com/angieshadai/zscan/blob/main/zscan.yaml">zscan.yaml</a>,
-          <a href="https://github.com/angieshadai/zscan/blob/main/.env.example">.env.example</a>,
+          <a href="https://github.com/angievic/zscan/blob/main/README.md">README.md</a>,
+          <a href="https://github.com/angievic/zscan/blob/main/zscan.yaml">zscan.yaml</a>,
+          <a href="https://github.com/angievic/zscan/blob/main/.env.example">.env.example</a>,
           tareas
-          <a href="https://github.com/angieshadai/zscan/tree/main/contrib/vscode">VS Code / Cursor</a>
+          <a href="https://github.com/angievic/zscan/tree/main/contrib/vscode">VS Code / Cursor</a>
           y
-          <a href="https://github.com/angieshadai/zscan/tree/main/contrib/pre-commit">pre-commit</a>.
+          <a href="https://github.com/angievic/zscan/tree/main/contrib/pre-commit">pre-commit</a>.
         </p>
         <ul class="muted" style="padding-left: 1.25rem; margin: 0">
           <li><a href="https://ollama.com/">Ollama</a></li>
@@ -594,15 +599,17 @@ node dist/cli.js scan-all --root . --no-enrich-docs</code></pre>
           <li>URL: <code>https://&lt;usuario&gt;.github.io/&lt;repo&gt;/</code></li>
         </ol>
         <p class="note">
-          <code>docs/.nojekyll</code> evita que Jekyll transforme los archivos. Si el usuario o el
-          repo cambian, actualizá los enlaces en este HTML.
+          <code>docs/.nojekyll</code> evita que Jekyll transforme los archivos. La URL pública es
+          siempre <code>https://&lt;dueño-del-repo-en-GitHub&gt;.github.io/&lt;repo&gt;/</code> (el
+          mismo usuario u org a quien hacés <code>git push</code>). Si ves HTML viejo, comprobá en
+          Settings → Pages la rama y <code>/docs</code>, y probá recarga forzada (Mayús+Recargar).
         </p>
       </section>
 
       <footer>
         <p>
           <strong>zscan</strong> — MIT ·
-          <a href="https://github.com/angieshadai/zscan/blob/main/README.md">README</a> ·
+          <a href="https://github.com/angievic/zscan/blob/main/README.md">README</a> ·
           <a href="./vision-agente-seguridad.md">Visión</a>
         </p>
       </footer>
