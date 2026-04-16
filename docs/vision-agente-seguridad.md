@@ -1,4 +1,4 @@
-# Agente de seguridad para proyectos (JS + Python) — visión y diseño
+# Agente de seguridad para proyectos (multilenguaje) — visión y diseño
 
 Documento vivo para discutir arquitectura, alcance y riesgos. Objetivo: librería multilenguaje con API local que opere sobre repositorios Git.
 
@@ -82,8 +82,21 @@ Esto complementa el mapa de **líneas de uso en código fuente** (§5): el árbo
 
 Objetivo: para cada dependencia vulnerable o sensible, listar **archivo + línea + tipo de uso**.
 
-| Lenguaje | Enfoque |
-|----------|---------|
+**Implementación actual (zscan)** — mapa de pistas **best-effort** con regex y recorrido por extensión (prioridad `src/`, si no existe se usa la raíz del proyecto):
+
+| Lenguaje | Extensiones |
+|----------|-------------|
+| **Python** | `.py` |
+| **Go** | `.go` |
+| **JavaScript** | `.js`, `.mjs`, `.cjs`, `.jsx` |
+| **TypeScript** | `.ts`, `.tsx` |
+| **Java** | `.java` |
+| **Ruby** | `.rb`, `.rake` |
+
+En **Go**, **Ruby** y **Java**/**Kotlin** (`.kt` en el mismo pipeline de pistas) se extraen imports con patrones por lenguaje; en **JS/TS** se usan `import` / `require` por línea. Roadmap: **AST** para TS/JS y **ast** de Python con mapeo `from foo.bar` → distribución, como abajo.
+
+| Lenguaje | Enfoque (objetivo / backlog) |
+|----------|------------------------------|
 | **JavaScript/TS** | AST (TypeScript compiler API, Babel, o `swc`) para `import`, `require()`, `import()`, re-exports; complementar con búsqueda de strings para casos dinámicos (con falsos positivos documentados). |
 | **Python** | `ast` estándar + resolución aproximada de top-level packages (mapear `from foo.bar` → distribución `foo` vía metadata cuando sea posible). |
 
@@ -173,7 +186,7 @@ Decisión pendiente según prioridad: **time-to-market** vs. **un solo artefacto
 4. **Reporte explícito** (idealmente **JSON** para máquinas + **Markdown legible** para humanos): por cada hallazgo incluir tipo, severidad, paquete/CVE, versiones, rutas, **líneas de uso en código** cuando existan, y texto de remediación sugerida **sin aplicar cambios** en el repo.
 5. Incluir **árbol / DAG de dependencias** y sección de **impacto en cadena**: si un paquete tiene confiabilidad insuficiente, **qué nodos quedan afectados** por transitividad y **rutas** en el grafo (alineado con §4.3).
 6. El reporte debe estar pensado para **copiar/pegar o adjuntar** como input a un asistente de IA: contexto suficiente para corregir sin adivinar.
-7. Mapa de uso: imports estáticos en **un lenguaje** primero (ej. solo TS/JS o solo Python).
+7. Mapa de uso: imports estáticos con **cobertura multilenguaje** en extensiones soportadas (§5); refinar con AST donde aporte (TS/JS, luego Python).
 8. Comando tipo **init** o primer run que **escriba o actualice** `zscan.yaml` por defecto (incl. propuesta de **núcleo** por cobertura ≥80% cuando la métrica exista); documentar que el equipo debe ajustar **rutas de prompts** y **objetivo** de cada uno.
 9. Modo “prompt scan”: evaluación contra reglas y umbrales del **YAML** + **porcentaje de confiabilidad** (prompts y dependencias); sin LLM externo por defecto.
 
@@ -313,3 +326,4 @@ Lista viva de lo acordado en la visión y lo pendiente; orden aproximado por val
 - 2026-04-03: **`scan`** unificado: mismo informe Markdown/JSON con dependencias + OSV + scraping de referencias + **prompt-scan** (`prompts` + `promptScanMessage` en JSON); `performCombinedScan` en la librería.
 - 2026-04-03: **`init`** detecta ficheros tipo prompt (docs, prompts, `.cursor`, `*.prompt.md`, AGENTS/CLAUDE/GEMINI, README, contrib) y genera **`prompts[]`** con globs que tienen coincidencias; regla `no_instruction_override` por defecto.
 - 2026-04-03: **`init`** también muestrea código bajo `src/` (y `lib/`, `app/`, …) en TS/JS/Python/Ruby/Go/Java/Kotlin y añade globs si hay **literales largos** + heurística tipo LLM/prompt.
+- 2026-04-03: §5 y README: tabla explícita de **lenguajes y extensiones** para pistas de uso en código (alineada a `importHints` / `init`).

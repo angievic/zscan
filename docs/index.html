@@ -340,6 +340,39 @@
       .muted {
         color: var(--muted);
       }
+      .lang-table-wrap {
+        overflow-x: auto;
+        margin: 0 0 1rem;
+        border: 1px solid var(--border-warm);
+        border-radius: 10px;
+        background: var(--card);
+      }
+      .lang-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.92rem;
+      }
+      .lang-table th,
+      .lang-table td {
+        padding: 0.65rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-warm);
+        vertical-align: top;
+      }
+      .lang-table tr:last-child td {
+        border-bottom: none;
+      }
+      .lang-table th {
+        font-weight: 600;
+        color: var(--accent);
+        background: var(--code-bg);
+        white-space: nowrap;
+      }
+      .lang-table td:last-child {
+        color: var(--muted);
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 0.86rem;
+      }
       footer {
         margin-top: 3rem;
         padding-top: 1.75rem;
@@ -358,6 +391,7 @@
       <nav class="nav__links" aria-label="Secciones">
         <a href="#inicio-rapido">Inicio rápido</a>
         <a href="#caracteristicas">Características</a>
+        <a href="#lenguajes-codigo">Lenguajes</a>
         <a href="#instalar">Instalar</a>
         <a href="#comandos">Comandos</a>
         <a href="#enriquecimiento">Referencias CVE</a>
@@ -510,6 +544,56 @@ node /ruta/a/zscan/dist/cli.js scan-all --root .</code></pre>
             </p>
           </div>
         </div>
+      </section>
+
+      <section id="lenguajes-codigo">
+        <h2>Lenguajes en el código (pistas de uso)</h2>
+        <p class="section-intro">
+          Para enlazar dependencias del lockfile con <strong>archivo y línea</strong>, el escaneo
+          considera estos tipos de fichero (best-effort; patrones de import, no AST completo).
+        </p>
+        <div class="lang-table-wrap">
+          <table class="lang-table">
+            <thead>
+              <tr>
+                <th>Lenguaje</th>
+                <th>Extensiones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Python</td>
+                <td>.py</td>
+              </tr>
+              <tr>
+                <td>Go</td>
+                <td>.go</td>
+              </tr>
+              <tr>
+                <td>JavaScript</td>
+                <td>.js, .mjs, .cjs, .jsx</td>
+              </tr>
+              <tr>
+                <td>TypeScript</td>
+                <td>.ts, .tsx</td>
+              </tr>
+              <tr>
+                <td>Java</td>
+                <td>.java</td>
+              </tr>
+              <tr>
+                <td>Ruby</td>
+                <td>.rb</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="muted" style="margin: 0; font-size: 0.92rem">
+          <code>zscan init</code> también muestrea Kotlin (<code>.kt</code>) para globs de prompts. Detalle:
+          <a href="https://github.com/angievic/zscan/blob/main/README.md#ecosistemas-soportados"
+            >README → Ecosistemas soportados</a
+          >.
+        </p>
       </section>
 
       <section id="instalar">

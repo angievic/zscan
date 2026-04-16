@@ -165,6 +165,21 @@ node dist/cli.js scan-all --root /ruta/al/proyecto
 | **Ruby** | `Gemfile.lock` |
 | **Java (Maven)** | `pom.xml` (versiones literales o `${prop}` resolubles en `<properties>`) |
 
+### Pistas de uso en código (extensiones)
+
+Para ubicar **dónde** se referencian dependencias del lockfile, el escaneo recorre código bajo `src/` (o la raíz si no hay `src/`) en estos tipos de fichero (**best-effort**, por patrones de import; no sustituye a un AST completo):
+
+| Lenguaje | Extensiones |
+|----------|-------------|
+| **Python** | `.py` |
+| **Go** | `.go` |
+| **JavaScript** | `.js`, `.mjs`, `.cjs`, `.jsx` |
+| **TypeScript** | `.ts`, `.tsx` |
+| **Java** | `.java` |
+| **Ruby** | `.rb` (también `.rake` donde aplique) |
+
+Además, **`zscan init`** puede muestrear el mismo conjunto de extensiones (más **Kotlin** `.kt` / `.kts` en código) para proponer globs de prompt-scan cuando detecta literales largos con señales tipo LLM.
+
 **Git** en el informe: detección de repo, `HEAD`, `.gitmodules`. **Gradle** aún no está soportado.
 
 ---
